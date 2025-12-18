@@ -2,6 +2,10 @@
 
 A tmux plugin that opens a floating popup to interact with Claude LLM. Supports two interaction modes (command generation and Q&A) with an interactive response viewer. Responses can be automatically sent to the tmux pane that triggered the popup.
 
+<img width="3024" height="1898" alt="image" src="https://github.com/user-attachments/assets/d926ac23-e70c-498f-a318-3a3093acea8d" />
+
+`prefix + l` 
+
 ## Features
 
 - 🚀 Floating popup at the bottom of the screen (normal mode) or centered (zoom mode)
@@ -234,6 +238,8 @@ tmux-llm-assistant/
 ### Zoom Mode
 
 Use `prefix + L` to open a larger, centered popup ideal for longer interactions.
+
+<img width="3024" height="1898" alt="image" src="https://github.com/user-attachments/assets/e217d98f-5bb3-4714-ba3c-a93c4f79d595" />
 
 ### Clipboard Integration
 
