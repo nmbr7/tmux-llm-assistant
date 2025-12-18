@@ -19,6 +19,7 @@ A tmux plugin that opens a floating popup to interact with Claude LLM. Supports 
 - ⚙️ Configurable key binding and model selection
 - 🔒 Secure API key handling via environment variable or tmux option
 - 🎨 Enhanced UI with `gum` and `glow` (optional, falls back gracefully)
+- **Write Anywhere**: This plugin can insert text at any cursor position in your active editor.
 
 ## Prerequisites
 
