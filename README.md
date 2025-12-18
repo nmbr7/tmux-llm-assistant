@@ -106,7 +106,7 @@ Add to `~/.tmux.conf` to make it persistent.
 Default model is `claude-opus-4-5-20251101`. To use a different model:
 
 ```bash
-tmux set-option -g @llm-assistant-model "claude-3-5-sonnet-20241022"
+tmux set-option -g @llm-assistant-model "claude-opus-4-5-20251101"
 ```
 
 ## Usage
