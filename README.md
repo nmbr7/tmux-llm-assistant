@@ -1,25 +1,27 @@
 # Tmux LLM Assistant Plugin
 
-A tmux plugin that opens a floating popup to interact with Claude LLM. Supports two interaction modes (command generation and Q&A) with an interactive response viewer. Responses can be automatically sent to the tmux pane that triggered the popup.
+A tmux plugin that provides floating popup-based access to Claude LLM with dedicated command and Q&A modes. Features real-time streaming responses, persistent conversation history, and seamless integration with your tmux workflow.
 
 <img width="3024" height="1898" alt="image" src="https://github.com/user-attachments/assets/d926ac23-e70c-498f-a318-3a3093acea8d" />
 
-`prefix + l` 
-
 ## Features
 
-- 🚀 Floating popup at the bottom of the screen (normal mode) or centered (zoom mode)
-- 🤖 Integration with Claude API (Anthropic)
-- 🎯 Two interaction modes:
-  - **Command mode**: Generate executable shell commands (default)
-  - **Ask mode**: Get explanations and answers (prefix with `?`)
-- ⌨️ Automatic response injection into the active pane
-- 📋 Copy responses to clipboard
-- 📝 Interactive response viewer with markdown support
-- ⚙️ Configurable key binding and model selection
-- 🔒 Secure API key handling via environment variable or tmux option
-- 🎨 Enhanced UI with `gum` and `glow` (optional, falls back gracefully)
-- **Write Anywhere**: This plugin can insert text at any cursor position in your active editor.
+- 🚀 **Dual-Mode Operation**:
+  - **Command mode** (`prefix + l`): Small bottom popup optimized for quick shell commands
+  - **Ask mode** (`prefix + L`): Larger centered popup for detailed Q&A
+- 🎯 **Separate Sessions**: Independent conversation contexts for command and ask modes
+- 📡 **Real-Time Streaming**: See Claude's response as it's generated (no buffering)
+- 💾 **Persistent History**: Per-pane conversation memory that survives popup toggles
+- ⌨️ **Smart Command Injection**: Commands automatically sent to your active pane
+- 📋 **Clipboard Integration**: Copy responses with a single key press
+- 🎨 **Enhanced UI**: Optional `gum` and `glow` support for beautiful formatting
+- 🔧 **Special Commands**:
+  - `/r` or `/reset`: Clear conversation history
+  - `/h` or `/history`: View previous queries
+- ⚙️ **Configurable**: Custom key bindings and model selection
+- 🔒 **Secure**: API key via environment variable or tmux option
+
+> **Inspired by [tmux-floax](https://github.com/omerxx/tmux-floax)** - Popup toggle pattern adapted from floax's elegant session management approach.
 
 ## Prerequisites
 
@@ -112,30 +114,55 @@ tmux set-option -g @llm-assistant-model "claude-opus-4-5-20251101"
 
 ## Usage
 
-### Opening the Popup
+### Two Dedicated Modes
 
-- **Normal mode**: Press `prefix + l` (or your custom key binding)
-  - Small popup at the bottom of the screen (80% width, 15% height)
-- **Zoom mode**: Press `prefix + L` (or `prefix + <uppercase-key>`)
-  - Large centered popup (90% width, 85% height) for longer interactions
+The plugin provides two independent interaction modes, each with its own session and conversation history:
 
-### Interaction Modes
+#### Command Mode (`prefix + l`)
+- Small popup at bottom (15% height)
+- Optimized for quick shell commands
+- Responses automatically sent to your active pane
+- Session: `llm-cmd-<pane_id>`
 
-The plugin supports two modes based on your input prefix:
+**Example:**
+```
+> find all files modified in the last 7 days
+```
+Output: `find . -mtime -7` (automatically injected into your pane)
 
-1. **Command Mode** (default): Generate executable shell commands
+#### Ask Mode (`prefix + L`)
+- Larger centered popup (70% height)
+- Perfect for Q&A and explanations
+- Markdown-formatted responses
+- Session: `llm-ask-<pane_id>`
 
-   ```
-   > find all files modified in the last 7 days
-   ```
+**Example:**
+```
+> what is the difference between git merge and git rebase?
+```
+Output: Detailed explanation with formatting
 
-   Response will be sent directly to your pane and executed.
+### Toggle Behavior (Floax-Style)
 
-2. **Ask Mode**: Get explanations and answers (prefix with `?`)
-   ```
-   > ? what is the difference between git merge and git rebase?
-   ```
-   Response is displayed with markdown formatting.
+Press the same key to open/close the popup:
+- First press: Opens popup with new or existing session
+- Second press (inside popup): Closes popup (session persists)
+- Third press: Reopens popup with conversation history intact
+
+**Benefits:**
+- ✅ **Real-time streaming** - See responses as they're generated
+- ✅ **Persistent sessions** - Conversation context preserved across toggles
+- ✅ **Per-pane isolation** - Each pane gets its own command and ask sessions
+- ✅ **Full tmux features** - Scrollback, copy mode, search all work perfectly
+
+### Special Commands
+
+Available in both modes:
+
+- **`/r` or `/reset`**: Clear conversation history for current mode
+- **`/h` or `/history`**: View all previous queries in current session
+
+Type these at the input prompt to use them.
 
 ### Response Viewer
 
@@ -153,24 +180,59 @@ After Claude responds, you'll see an interactive viewer using `less` pager:
 - **[q]**: Go back to input stage to ask another question
 - **[Esc]**: Exit the popup completely
 
-### Canceling
+### Conversation History & Persistence
 
-- Press `Ctrl+C` or `Esc` to cancel at any time
+**Independent History per Mode:**
+
+- Each mode (command/ask) maintains its own conversation history
+- Command mode: `/tmp/llm_history_<pane_id>.json`
+- Ask mode: Separate history file per session
+- History persists across popup toggles - context is preserved
+- Use `/r` to reset history, `/h` to view past queries
+- **[q]** key in response viewer goes back to input while preserving history
+
+**Workflow:**
+1. Open popup (`prefix + l` or `prefix + L`)
+2. Ask questions, see streaming responses
+3. Close popup anytime (press key again or `Ctrl+C`)
+4. Do other work...
+5. Reopen same popup - conversation history intact
+6. Ask follow-up questions referencing previous context
+
+### Action Keys in Response Viewer
+
+After Claude responds:
+
+- **[Enter]**: Execute/send response (command mode) or dismiss (ask mode)
+- **[c]**: Copy response to clipboard
+- **[q]**: Back to input (preserves history)
+- **[r]**: Reset conversation history
+- **[Esc]**: Exit popup completely
+
+### Exiting
+
+- Press the bound key again (inside popup) to close
+- `Ctrl+C` or `Esc` to force exit
 - Leave input empty and press Enter to exit
 
 ## Example Use Cases
 
-### Generate Shell Commands (Command Mode)
+### Command Mode Examples
 
 ```
 > find all files modified in the last 7 days
+> show disk usage sorted by size
+> kill all processes using port 8080
+> create a tar archive of the logs directory
 ```
 
-### Ask Questions (Ask Mode)
+### Ask Mode Examples
 
 ```
-> ? explain what this bash script does: [paste your code]
-> ? what is the difference between git merge and git rebase?
+> explain what this bash script does: [paste your code]
+> what is the difference between git merge and git rebase?
+> how do I optimize Docker build times?
+> explain the tmux copy mode workflow
 ```
 
 ## Troubleshooting
@@ -236,24 +298,40 @@ tmux-llm-assistant/
 
 ## Advanced Features
 
-### Zoom Mode
-
-Use `prefix + L` to open a larger, centered popup ideal for longer interactions.
-
-<img width="3024" height="1898" alt="image" src="https://github.com/user-attachments/assets/e217d98f-5bb3-4714-ba3c-a93c4f79d595" />
-
 ### Clipboard Integration
 
-The plugin automatically detects and uses: `pbcopy` (macOS), `xclip`/`xsel` (Linux), or tmux buffer as fallback.
+The plugin automatically detects and uses the best available clipboard method:
+- `pbcopy` (macOS)
+- `xclip` or `xsel` (Linux)
+- tmux buffer (fallback)
+
+### Command Output Cleaning
+
+Command mode automatically strips markdown code blocks and extra formatting from Claude's responses, ensuring clean commands ready for execution.
+
+### Session Isolation
+
+Each pane maintains independent command and ask sessions:
+- `llm-cmd-%0`, `llm-ask-%0` for pane `%0`
+- `llm-cmd-%1`, `llm-ask-%1` for pane `%1`
+- etc.
+
+This allows different workflows in different panes without context mixing.
+
+## Acknowledgments
+
+- **[tmux-floax](https://github.com/omerxx/tmux-floax)** - Inspired the popup toggle pattern and session management approach
+- **[Anthropic Claude](https://www.anthropic.com/claude)** - Powering the LLM interactions
+- **[charm.sh](https://charm.sh/)** - `gum` and `glow` for beautiful terminal UI
 
 ## License
 
 MIT License - feel free to modify and distribute.
 
-## Note
-
-This project was fully vibe coded. 🎨
-
 ## Contributing
 
 Contributions welcome! Please feel free to submit a Pull Request.
+
+---
+
+**Note:** This project was fully vibe coded. 🎨
