@@ -2,13 +2,17 @@
 
 A tmux plugin that provides floating popup-based access to Claude LLM with dedicated command and Q&A modes. Features real-time streaming responses, persistent conversation history, and seamless integration with your tmux workflow.
 
-<img width="3024" height="1898" alt="image" src="https://github.com/user-attachments/assets/d926ac23-e70c-498f-a318-3a3093acea8d" />
-
 ## Features
 
 - 🚀 **Dual-Mode Operation**:
   - **Command mode** (`prefix + l`): Small bottom popup optimized for quick shell commands
+
+      <img width="5120" height="2880" alt="image" src="https://github.com/user-attachments/assets/44bdf0aa-c786-4c98-9885-afe44942efd3" />
+
   - **Ask mode** (`prefix + L`): Larger centered popup for detailed Q&A
+
+      <img width="5120" height="2880" alt="image" src="https://github.com/user-attachments/assets/66c617ef-4f95-49eb-afd2-bfa2d71f5f6f" />
+
 - 🎯 **Separate Sessions**: Independent conversation contexts for command and ask modes
 - 📡 **Real-Time Streaming**: See Claude's response as it's generated (no buffering)
 - 💾 **Persistent History**: Per-pane conversation memory that survives popup toggles
