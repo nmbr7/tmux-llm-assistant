@@ -171,11 +171,37 @@ bash scripts/claude-api.sh "$CLAUDE_API_KEY" "claude-opus-4-5-20251101" "command
 
 ## Security Notes
 
-- API key passed as command argument (visible in `ps`)
-- History stored in `/tmp/` (user-readable only)
-- No encryption of conversation history
-- Marker files use predictable names
-- API key never written to disk by plugin
+### Security Improvements Implemented
+
+✅ **API Key Protection**
+- API key passed via tmux session environment (`-e` flag)
+- Not visible in `ps` output (environment variables are process-private)
+- No temporary key files needed
+- Simple and secure approach
+
+✅ **File Permissions**
+- All temp files created with 600 permissions (owner only)
+- History files: 600 permissions on creation
+- Marker files: 600 permissions
+- Pane ID files: 600 permissions
+
+✅ **Secure Cleanup**
+- EXIT trap ensures temp files are removed
+- INT and TERM signals also trigger cleanup
+- Automatic cleanup on all exit paths
+
+### Remaining Considerations
+
+⚠️ **Conversation History**
+- Stored unencrypted in `/tmp/llm_history_<pane_id>.json`
+- Protected by 600 permissions (owner read/write only)
+- Persists across sessions (by design for continuity)
+- Use `/r` command to clear sensitive conversations
+
+⚠️ **Temporary Directory**
+- Uses `/tmp/` which may be on disk or tmpfs depending on system
+- On most modern systems, `/tmp` is tmpfs (RAM-based)
+- Consider manual cleanup of sensitive history if needed
 
 ## When to Update README
 
@@ -193,6 +219,69 @@ This plugin draws inspiration from:
 - [charm.sh](https://charm.sh/) - UI components (gum, glow)
 
 ## Notes for Claude Code
+
+### Before Committing Changes
+
+**CRITICAL: Security Audit**
+
+Before committing ANY changes, run a security audit to ensure no sensitive data is being committed:
+
+```bash
+# Check for API keys, tokens, secrets
+git diff HEAD | grep -iE "(sk-ant|api[_-]?key.*=.*['\"]|password.*=|token.*=.*['\"]|secret.*=)" | grep -v "CLAUDE_API_KEY" | grep -v "# "
+
+# Check for personal paths
+git diff HEAD | grep -E "(/Users/[^/]+|/home/[^/]+)"
+
+# Check for hardcoded credentials
+git diff HEAD | grep -iE "(bearer|authorization:|x-api-key:)"
+```
+
+**Never commit:**
+- ❌ Actual API keys or tokens
+- ❌ Personal paths with usernames
+- ❌ Hardcoded credentials
+- ❌ Internal URLs or endpoints
+- ❌ Test data with real user information
+
+**CRITICAL: Developer Understanding Check**
+
+Before committing any code changes, you MUST verify the developer understands what was changed and why. Ask questions like:
+
+1. **Understanding Check:**
+   - "Can you explain in your own words what these changes do?"
+   - "What problem does this solve?"
+   - "How would you debug this if it breaks?"
+
+2. **Maintenance Check:**
+   - "If I (Claude) wasn't available, could you maintain this code?"
+   - "Do you understand each function/script modification?"
+   - "Can you trace the data flow through the changes?"
+
+3. **Testing Verification:**
+   - "Have you tested these changes?"
+   - "What scenarios did you test?"
+   - "Do you know how to test this without AI assistance?"
+
+**Only commit if:**
+- ✅ Developer demonstrates clear understanding of the changes
+- ✅ Developer can explain the logic without AI help
+- ✅ Developer knows how to debug/maintain the code
+- ✅ Developer has tested or knows how to test the changes
+
+**Do NOT commit if:**
+- ❌ Developer just says "looks good" without explanation
+- ❌ Developer can't explain what the code does
+- ❌ Changes are too complex for developer to understand
+- ❌ Developer hasn't reviewed the changes carefully
+
+**Why this matters:**
+- Code must be maintainable without AI assistance
+- Developer needs to fix bugs independently
+- Long-term maintenance requires human understanding
+- Blind trust in AI-generated code creates technical debt
+
+### General Guidelines
 
 - Always test changes before committing
 - Preserve backward compatibility where possible

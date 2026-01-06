@@ -72,6 +72,7 @@ toggle_llm_popup() {
         local model=$(get_model)
         local max_tokens=$(get_max_tokens)
         local tmp_file=$(mktemp /tmp/tmux-llm.XXXXXX)
+        chmod 600 "$tmp_file"
         echo "$origin_pane" > "$tmp_file"
 
         # Determine session mode
@@ -82,8 +83,10 @@ toggle_llm_popup() {
         fi
 
         # Create new detached session with mode parameter
+        # API key read from environment in the session (secure - not in ps output)
         tmux new-session -d -s "$llm_session" \
-            "bash $CURRENT_DIR/scripts/llm-popup.sh '$api_key' '$tmp_file' '$model' '$max_tokens' '$session_mode'"
+            -e CLAUDE_API_KEY="$api_key" \
+            "bash $CURRENT_DIR/scripts/llm-popup.sh '$tmp_file' '$model' '$max_tokens' '$session_mode'"
 
         # Configure the window appearance
         tmux set-option -t "$llm_session" status off
@@ -104,8 +107,9 @@ toggle_llm_popup() {
         local y_pos="100%"
     fi
 
-    # Mark popup as active
+    # Mark popup as active with secure permissions
     touch "$popup_marker"
+    chmod 600 "$popup_marker"
 
     # Show popup with session attached (floax-style)
     tmux set-option -t "$llm_session" detach-on-destroy on

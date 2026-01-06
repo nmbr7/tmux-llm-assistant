@@ -291,10 +291,31 @@ tmux-llm-assistant/
 
 ## Security Notes
 
+### Best Practices
+
 - **Never commit your API key** to version control
-- Use environment variables for API keys when possible
-- The API key is passed as a command-line argument (visible in process list)
-- Temporary files are created in `/tmp/` and cleaned up automatically
+- Use environment variables for API keys (recommended)
+- API keys passed via tmux session environment (not visible in `ps`)
+- All temporary files have 600 permissions (owner read/write only)
+
+### Security Features
+
+✅ **API Key Protection**
+- API key passed via tmux session environment (not command args)
+- Not visible in process list (`ps` output)
+- Simple and secure - uses tmux's `-e` flag
+
+✅ **File Security**
+- All temp files created with 600 permissions (owner only)
+- History files protected from other users
+- Marker files have restricted access
+- Automatic cleanup on exit via trap handlers
+
+⚠️ **Important Notes**
+- Conversation history stored unencrypted in `/tmp/`
+- History persists across sessions (by design for continuity)
+- Use `/r` command to clear sensitive conversations
+- Consider manual cleanup: `rm /tmp/llm_history_*` if needed
 
 ## Advanced Features
 

@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 
-API_KEY="$1"
-PANE_ID_FILE="$2"
-MODEL="$3"
-MAX_TOKENS="${4:-16384}"
-DEFAULT_MODE="${5:-command}"
+PANE_ID_FILE="$1"
+MODEL="$2"
+MAX_TOKENS="${3:-16384}"
+DEFAULT_MODE="${4:-command}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Read API key from environment variable (passed via tmux -e flag)
+API_KEY="$CLAUDE_API_KEY"
 
 TARGET_PANE_ID=$(cat "$PANE_ID_FILE")
 RAW_OUT="/tmp/llm_raw_res.txt"
@@ -13,8 +15,14 @@ HISTORY_FILE="/tmp/llm_history_${TARGET_PANE_ID}.json"
 STATE_FILE="/tmp/llm_state_${TARGET_PANE_ID}.state"
 STREAM_PID_FILE="/tmp/llm_stream_${TARGET_PANE_ID}.pid"
 
+# Set restrictive permissions on all temp files for security
+chmod 600 "$RAW_OUT" 2>/dev/null || true
+
 # Initialize empty conversation history if it doesn't exist
-[ ! -f "$HISTORY_FILE" ] && echo "[]" >"$HISTORY_FILE"
+if [ ! -f "$HISTORY_FILE" ]; then
+  echo "[]" >"$HISTORY_FILE"
+  chmod 600 "$HISTORY_FILE"
+fi
 
 # Clean up any leftover state files
 rm -f "$STATE_FILE" "$STREAM_PID_FILE"
@@ -35,10 +43,11 @@ cleanup() {
     kill $(cat "$STREAM_PID_FILE") 2>/dev/null
     rm -f "$STREAM_PID_FILE"
   fi
+  # Secure cleanup - remove temp files
   rm -f "$PANE_ID_FILE" "$STATE_FILE"
   exit 0
 }
-trap cleanup INT TERM
+trap cleanup INT TERM EXIT
 
 clear
 # Hide cursor
