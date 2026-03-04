@@ -18,6 +18,12 @@ get_model() {
     echo "$model"
 }
 
+get_backend() {
+    local backend=$(tmux show-option -gqv "@llm-assistant-backend")
+    [ -z "$backend" ] && backend="claude"
+    echo "$backend"
+}
+
 get_max_tokens() {
     local max_tokens=$(tmux show-option -gqv "@llm-assistant-max-tokens")
     [ -z "$max_tokens" ] && max_tokens="16384"
@@ -62,14 +68,16 @@ toggle_llm_popup() {
     # Check if LLM session exists for this pane
     if ! tmux has-session -t "$llm_session" 2>/dev/null; then
         # Session doesn't exist - create it
-        local api_key=$(get_api_key)
-
-        if [ -z "$api_key" ]; then
-            tmux display-message -d 4000 "LLM Error: CLAUDE_API_KEY not found."
-            return 1
-        fi
-
         local model=$(get_model)
+        local backend=$(get_backend)
+        local api_key=""
+        if [ "$backend" = "claude" ]; then
+            api_key=$(get_api_key)
+            if [ -z "$api_key" ]; then
+                tmux display-message -d 4000 "LLM Error: CLAUDE_API_KEY not found."
+                return 1
+            fi
+        fi
         local max_tokens=$(get_max_tokens)
         local tmp_file=$(mktemp /tmp/tmux-llm.XXXXXX)
         chmod 600 "$tmp_file"
@@ -86,7 +94,7 @@ toggle_llm_popup() {
         # API key read from environment in the session (secure - not in ps output)
         tmux new-session -d -s "$llm_session" \
             -e CLAUDE_API_KEY="$api_key" \
-            "bash $CURRENT_DIR/scripts/llm-popup.sh '$tmp_file' '$model' '$max_tokens' '$session_mode'"
+            "bash $CURRENT_DIR/scripts/llm-popup.sh '$tmp_file' '$model' '$max_tokens' '$session_mode' '$backend'"
 
         # Configure the window appearance
         tmux set-option -t "$llm_session" status off

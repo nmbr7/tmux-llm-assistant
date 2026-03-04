@@ -4,6 +4,7 @@ PANE_ID_FILE="$1"
 MODEL="$2"
 MAX_TOKENS="${3:-16384}"
 DEFAULT_MODE="${4:-command}"
+BACKEND="${5:-claude}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Read API key from environment variable (passed via tmux -e flag)
@@ -126,7 +127,7 @@ while true; do
     color=212
   fi
 
-  # 2. THINKING STAGE (with progressive streaming)
+  # 2. THINKING STAGE (with progressive streaming when supported)
   clear
   if command -v gum &>/dev/null; then
     gum style --padding "1 2" --foreground "$color" "── Mode: ${mode^^} ──"
@@ -138,7 +139,7 @@ while true; do
   # Stream with real-time display
   printf "\n  "
 
-  unbuffer bash "$SCRIPT_DIR/claude-api.sh" "$API_KEY" "$MODEL" "$mode" "$p" "$HISTORY_FILE" "$MAX_TOKENS" 2>&1
+  unbuffer bash "$SCRIPT_DIR/claude-api.sh" "$API_KEY" "$MODEL" "$mode" "$p" "$HISTORY_FILE" "$MAX_TOKENS" "$BACKEND" 2>&1
   api_exit_code=$?
 
   # Save the result to RAW_OUT from history

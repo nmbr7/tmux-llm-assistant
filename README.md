@@ -80,7 +80,21 @@ Then press `prefix + I` to install.
 
 ## Configuration
 
-### 1. Set Your Claude API Key
+### 1. Choose LLM Backend (Claude or Ollama)
+
+Default backend is `claude`. To use Ollama (local models), set:
+
+```bash
+tmux set-option -g @llm-assistant-backend "ollama"
+```
+
+To switch back to Claude:
+
+```bash
+tmux set-option -g @llm-assistant-backend "claude"
+```
+
+### 2. Set Your Claude API Key (Claude backend only)
 
 **Option A: Environment Variable (Recommended)**
 
@@ -98,7 +112,7 @@ tmux set-option -g @llm-assistant-api-key "your-api-key-here"
 
 Add this to your `~/.tmux.conf` to make it persistent.
 
-### 2. Customize Key Binding (Optional)
+### 3. Customize Key Binding (Optional)
 
 Default key binding is `prefix + l` (normal) and `prefix + L` (zoom). To change it:
 
@@ -108,13 +122,25 @@ tmux set-option -g @llm-assistant-key "a"  # Use prefix + a (normal) and prefix 
 
 Add to `~/.tmux.conf` to make it persistent.
 
-### 3. Change Claude Model (Optional)
+### 4. Change Model (Optional)
 
 Default model is `claude-opus-4-5-20251101`. To use a different model:
 
 ```bash
 tmux set-option -g @llm-assistant-model "claude-opus-4-5-20251101"
 ```
+
+#### Ollama model example
+
+If you are using the Ollama backend, set an Ollama model name, for example:
+
+```bash
+tmux set-option -g @llm-assistant-model "qwen3.5:0.8b"
+```
+
+Notes:
+- Ollama is contacted at `http://localhost:11434` (Ollama must be running).
+- The plugin currently uses a **non-streaming** request path for Ollama.
 
 ## Usage
 
@@ -243,9 +269,16 @@ After Claude responds:
 
 ### "LLM Error: CLAUDE_API_KEY not found."
 
+- This error applies only when `@llm-assistant-backend` is `claude`
 - Make sure you've set the API key using one of the methods above
 - Verify the key is accessible: `echo $CLAUDE_API_KEY`
 - Check tmux option: `tmux show-option -gqv "@llm-assistant-api-key"`
+
+### Ollama: "API Error ... Unable to connect" / connection issues
+
+- Ensure Ollama is running locally and reachable: `curl -s http://localhost:11434/api/tags | jq .`
+- Pull/run the model at least once: `ollama run qwen3.5:0.8b`
+- Confirm backend selection: `tmux show-option -gqv "@llm-assistant-backend"`
 
 ### "Network Error: ..."
 
